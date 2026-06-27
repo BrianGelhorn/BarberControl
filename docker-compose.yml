@@ -1,0 +1,22 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: barberia_postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-barberia}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-barberia_local}
+      POSTGRES_DB: ${POSTGRES_DB:-barberia_test}
+    ports:
+      - "${POSTGRES_PORT:-5433}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/schema.sql.txt:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  postgres_data:
