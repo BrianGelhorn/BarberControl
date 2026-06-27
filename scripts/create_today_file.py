@@ -15,10 +15,10 @@ def parse_date():
 
 
 def template_path():
-    for path in (ROOT / "templates" / "Diario.xlsx", ROOT / "Diario.xlsx"):
+    for path in (ROOT / "templates" / "Dia-Mes-template.xlsx", ROOT / "Dia-Mes-template.xlsx"):
         if path.exists():
             return path
-    raise SystemExit("No encontre templates/Diario.xlsx ni Diario.xlsx")
+    raise SystemExit("No encontre templates/Dia-Mes-template.xlsx ni Dia-Mes-template.xlsx")
 
 
 def main():
