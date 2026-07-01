@@ -36,15 +36,15 @@ if errorlevel 1 (
   "%SystemRoot%\System32\odbcconf.exe" /A {CONFIGSYSDSN "PostgreSQL Unicode" "%ATTRS%"}
 )
 if errorlevel 1 (
-  echo No pude crear el DSN. Instala el driver ODBC de PostgreSQL y vuelve a ejecutar este .bat.
+  echo Could not create the DSN. Install the PostgreSQL ODBC driver and run this .bat again.
   pause
   exit /b 1
 )
 
 echo.
-echo DSN ODBC creado: %DSN_NAME%
+echo ODBC DSN created: %DSN_NAME%
 echo Host: %POSTGRES_HOST%
-echo Puerto: %POSTGRES_PORT%
-echo Base: %ODBC_DB%
-echo Usuario: %POSTGRES_USER%
+echo Port: %POSTGRES_PORT%
+echo Database: %ODBC_DB%
+echo User: %POSTGRES_USER%
 pause

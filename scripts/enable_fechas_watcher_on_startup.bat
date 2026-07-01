@@ -19,5 +19,5 @@ if errorlevel 1 (
 schtasks /Run /TN "%TASK%"
 
 echo.
-echo Listo. El watcher de Fechas se ejecutara en segundo plano al iniciar sesion.
+echo Done. The Fechas watcher will run in the background when you sign in.
 pause

@@ -5,7 +5,7 @@ $Fechas = Join-Path $Root "Fechas"
 $Importer = Join-Path $PSScriptRoot "import_fechas.py"
 
 if (-not (Test-Path $Fechas)) {
-  Write-Host "No existe la carpeta Fechas."
+  Write-Host "The Fechas folder does not exist."
   exit 1
 }
 
@@ -15,7 +15,7 @@ if ($Python) {
 } else {
   $Python = Get-Command python -ErrorAction SilentlyContinue
   if (-not $Python) {
-    Write-Host "No encuentro Python en PATH."
+    Write-Host "Python was not found in PATH."
     exit 1
   }
   $PythonArgs = @($Importer)
@@ -31,15 +31,15 @@ function Get-Fingerprint {
 
 function Run-Import {
   Write-Host ""
-  Write-Host "[$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')] Importando Fechas..."
+  Write-Host "[$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')] Importing Fechas..."
   & $Python.Source @PythonArgs
   if ($LASTEXITCODE -ne 0) {
-    Write-Host "Import fallido. Reintento en el proximo cambio."
+    Write-Host "Import failed. It will retry on the next change."
   }
 }
 
-Write-Host "Vigilando $Fechas"
-Write-Host "Presiona Ctrl+C para salir."
+Write-Host "Watching $Fechas"
+Write-Host "Press Ctrl+C to exit."
 
 $last = Get-Fingerprint
 Run-Import

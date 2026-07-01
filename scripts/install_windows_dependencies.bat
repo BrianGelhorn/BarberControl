@@ -9,7 +9,7 @@ if errorlevel 1 (
 
 where winget >nul 2>&1
 if errorlevel 1 (
-  echo winget no esta instalado. Instala "App Installer" desde Microsoft Store y vuelve a ejecutar este .bat.
+  echo winget is not installed. Install "App Installer" from Microsoft Store and run this .bat again.
   pause
   exit /b 1
 )
@@ -22,6 +22,6 @@ winget install --id PostgreSQL.PostgreSQL.17 --exact --accept-package-agreements
 winget install --id PostgreSQL.psqlODBC --exact --accept-package-agreements --accept-source-agreements
 
 echo.
-echo Instalacion terminada.
-echo PostgreSQL queda instalado con usuario postgres y password postgres.
+echo Installation finished.
+echo PostgreSQL was installed with user postgres and password postgres.
 pause
