@@ -11,9 +11,9 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 FECHAS_DIR = ROOT / "Fechas"
-IMPORT_YEAR = int(os.getenv("IMPORT_YEAR", "2025"))
+IMPORT_YEAR = int(os.getenv("IMPORT_YEAR", "2026"))
 DB_USER = os.getenv("POSTGRES_USER", "barberia")
-DB_NAME = os.getenv("POSTGRES_TEST_DB", "barberia_test")
+DB_NAME = os.getenv("POSTGRES_DB", "barberia_prod")
 
 NS = {"a": "http://schemas.openxmlformats.org/spreadsheetml/2006/main"}
 BLOCKS = [(1, 2, 3, 4), (5, 6, 7, 8), (9, 10, 11, 12), (13, 14, 15, 16),
@@ -201,9 +201,8 @@ def values(rows, fields):
 
 def run_psql(sql):
     cmd = ["docker", "compose", "exec", "-T", "postgres", "psql", "-q", "-t", "-A", "-v", "ON_ERROR_STOP=1", "-U", DB_USER, "-d", DB_NAME]
-    result = subprocess.run(cmd, cwd=ROOT, input=sql, text=True, check=True, stdout=subprocess.PIPE)
-    lines = [line.strip() for line in result.stdout.splitlines() if line.strip()]
-    return lines[-1] if lines else ""
+    result = subprocess.run(cmd, cwd=ROOT, input=sql, text=True, encoding="utf-8", check=True, stdout=subprocess.PIPE)
+    return [line.strip() for line in result.stdout.splitlines() if line.strip()]
 
 
 def import_file(path):
@@ -327,13 +326,14 @@ JOIN (SELECT lower("nombre") AS nombre, min("id") AS "id" FROM "Barberos" GROUP 
 CROSS JOIN tmp_target
 CROSS JOIN adelantos_base;
 COMMIT;
-SELECT CASE
+SELECT {sql_text(rel)} || '|' || CASE
   WHEN NOT EXISTS (SELECT 1 FROM tmp_existing) THEN 'importado'
   WHEN EXISTS (SELECT 1 FROM tmp_existing WHERE "hash" <> {sql_text(digest)}) THEN 'actualizado'
   ELSE 'sin cambios'
 END;
+DROP TABLE tmp_barberos, tmp_cortes, tmp_salidas, tmp_ventas, tmp_adelantos, tmp_existing, tmp_target;
 """
-    return run_psql(sql), len(cortes), len(salidas), len(ventas), len(adelantos), invalidos
+    return sql, len(cortes), len(salidas), len(ventas), len(adelantos), invalidos
 
 
 def main():
@@ -344,10 +344,23 @@ def main():
         sys.exit("No encontre archivos .xlsx en Fechas/")
 
     totals = [0, 0, 0, 0, 0]
+    scripts = []
+    pending = []
     for path in files:
-        status, *counts = import_file(path)
-        totals = [a + b for a, b in zip(totals, counts)]
+        sql, *counts = import_file(path)
+        scripts.append(sql)
         rel = str(path.relative_to(ROOT)).replace("\\", "/")
+        pending.append((rel, counts))
+        totals = [a + b for a, b in zip(totals, counts)]
+
+    statuses = {}
+    for line in run_psql("\n".join(scripts)):
+        if "|" in line:
+            rel, status = line.split("|", 1)
+            statuses[rel] = status
+
+    for rel, counts in pending:
+        status = statuses.get(rel, "sin estado")
         print(f"{status}: {rel} cortes={counts[0]} salidas={counts[1]} ventas={counts[2]} adelantos={counts[3]} invalidos={counts[4]}")
     print(f"Listo. Leidos cortes={totals[0]} salidas={totals[1]} ventas={totals[2]} adelantos={totals[3]} invalidos={totals[4]}.")
 
